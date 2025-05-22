@@ -1,4 +1,5 @@
-﻿namespace Xilium.CefGlue.Platform
+﻿#if !(MACOS || WINDOWS)
+namespace Xilium.CefGlue.Platform
 {
     using System;
     using System.Collections.Generic;
@@ -69,6 +70,7 @@
             }
         }
 
+#if !(MACOS || LINUX)
         public override WindowStyle Style
         {
             get { return default(WindowStyle); }
@@ -80,6 +82,7 @@
             get { return default(WindowStyleEx); }
             set { }
         }
+#endif
 
         public override IntPtr MenuHandle
         {
@@ -112,3 +115,4 @@
         }
     }
 }
+#endif

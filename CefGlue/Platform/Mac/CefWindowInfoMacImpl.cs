@@ -1,11 +1,14 @@
-﻿namespace Xilium.CefGlue.Platform
+﻿#if !(WINDOWS || LINUX)
+namespace Xilium.CefGlue.Platform
 {
     using System;
     using System.Collections.Generic;
     using System.Text;
     using Xilium.CefGlue;
     using Xilium.CefGlue.Interop;
+#if !(MACOS || LINUX)
     using Xilium.CefGlue.Platform.Windows;
+#endif
 
     internal unsafe sealed class CefWindowInfoMacImpl : CefWindowInfo
     {
@@ -69,6 +72,7 @@
             }
         }
 
+#if !(MACOS || LINUX)
         public override WindowStyle Style
         {
             get { return default(WindowStyle); }
@@ -80,6 +84,7 @@
             get { return default(WindowStyleEx); }
             set { }
         }
+#endif
 
         public override IntPtr MenuHandle
         {
@@ -112,3 +117,4 @@
         }
     }
 }
+#endif

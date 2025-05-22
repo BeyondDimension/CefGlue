@@ -7,7 +7,9 @@
     using System.Reflection;
     using System.Runtime.InteropServices;
     using Xilium.CefGlue.Interop;
+#if !(MACOS || LINUX)
     using Windows = Xilium.CefGlue.Platform.Windows;
+#endif
 
     public sealed unsafe class CefMainArgs
     {
@@ -24,8 +26,10 @@
         {
             switch (CefRuntime.Platform)
             {
+#if !(MACOS || LINUX)
                 case CefRuntimePlatform.Windows:
                     return (cef_main_args_t*)ToNativeWindows();
+#endif
 
                 case CefRuntimePlatform.Linux:
                 case CefRuntimePlatform.MacOS:
@@ -36,12 +40,14 @@
             }
         }
 
+#if !(MACOS || LINUX)
         private cef_main_args_t_windows* ToNativeWindows()
         {
             var ptr = cef_main_args_t_windows.Alloc();
             ptr->instance = Windows.NativeMethods.GetModuleHandle(null);
             return ptr;
         }
+#endif
 
         private cef_main_args_t_posix* ToNativePosix()
         {
@@ -74,7 +80,7 @@
             byte** argv = (byte**)Marshal.AllocHGlobal(size);
             byte* data = (byte*)argv + sizeOfArray;
 
-            for (var i=0; i < args.Length; i++)
+            for (var i = 0; i < args.Length; i++)
             {
                 argv[i] = data;
 

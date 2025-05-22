@@ -1,4 +1,5 @@
-﻿namespace Xilium.CefGlue.Platform
+﻿#if !(MACOS || LINUX)
+namespace Xilium.CefGlue.Platform
 {
     using System;
     using System.Collections.Generic;
@@ -113,3 +114,4 @@
         }
     }
 }
+#endif

@@ -1,4 +1,5 @@
-﻿namespace Xilium.CefGlue.Platform.Windows
+﻿#if !(MACOS || LINUX)
+namespace Xilium.CefGlue.Platform.Windows
 {
     using System;
     using System.Collections.Generic;
@@ -91,3 +92,4 @@
         WS_VSCROLL = 0x200000
     }
 }
+#endif

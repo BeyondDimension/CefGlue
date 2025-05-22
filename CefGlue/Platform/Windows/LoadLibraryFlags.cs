@@ -1,4 +1,5 @@
-﻿namespace Xilium.CefGlue.Platform.Windows
+﻿#if !(MACOS || LINUX)
+namespace Xilium.CefGlue.Platform.Windows
 {
     using System;
     using System.Collections.Generic;
@@ -15,3 +16,4 @@
         LOAD_WITH_ALTERED_SEARCH_PATH = 0x00000008
     }
 }
+#endif

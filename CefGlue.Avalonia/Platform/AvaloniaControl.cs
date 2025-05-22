@@ -7,10 +7,19 @@ using Avalonia.Controls.Primitives.PopupPositioning;
 using Avalonia.Input;
 using Avalonia.Platform;
 using Avalonia.Threading;
+#if !(MACOS || WINDOWS)
 using Xilium.CefGlue.Avalonia.Platform.Linux;
+#endif
+#if !(WINDOWS || LINUX)
 using Xilium.CefGlue.Avalonia.Platform.MacOS;
+#endif
+#if !(MACOS || LINUX)
 using Xilium.CefGlue.Avalonia.Platform.Windows;
+#endif
 using Xilium.CefGlue.Common.Helpers;
+#if !(WINDOWS || LINUX)
+using NSView = Xilium.CefGlue.Avalonia.Platform.MacOS.NSView;
+#endif
 
 namespace Xilium.CefGlue.Avalonia.Platform
 {
@@ -57,15 +66,19 @@ namespace Xilium.CefGlue.Avalonia.Platform
             {
                 switch (CefRuntime.Platform)
                 {
+#if !(MACOS || LINUX)
                     case CefRuntimePlatform.Windows:
                         _hostWindowPlatformHandle = new Window().TryGetPlatformHandle();
                         break;
+#endif
+#if !(MACOS || WINDOWS)
                     case CefRuntimePlatform.Linux:
                         // Avalonia window doesn't work. It's color depth is 32.
                         // We should create a x11 window with color depth 24.
                         // Cef creates browser window with CopyFromParent colormap, so the color depth must be same.
                         _hostWindowPlatformHandle = XWindow.CreateHostWindow();
                         break;
+#endif
                 }
             }
             return _hostWindowPlatformHandle;
@@ -73,7 +86,10 @@ namespace Xilium.CefGlue.Avalonia.Platform
 
         public virtual IntPtr? GetHostViewHandle(int initialWidth, int initialHeight)
         {
+#if !(WINDOWS || LINUX)
+#if !MACOS
             if (CefRuntime.Platform == CefRuntimePlatform.MacOS)
+#endif
             {
                 if (_browserView == null)
                 {
@@ -82,6 +98,7 @@ namespace Xilium.CefGlue.Avalonia.Platform
                 }
                 return _browserView.Handle;
             }
+#endif
 
             // return the window handle
             return GetHostWindowPlatformHandle()?.Handle;
@@ -155,15 +172,19 @@ namespace Xilium.CefGlue.Avalonia.Platform
         {
             switch (CefRuntime.Platform)
             {
+#if !(MACOS || LINUX)
                 case CefRuntimePlatform.Windows:
                     // store cef window handle, to dispose later
                     _browserView = new HostWindow(browserHandle);
                     break;
+#endif
+#if !(MACOS || WINDOWS)
                 case CefRuntimePlatform.Linux:
                     // This window is created by cef. It should be closed when browser close.
                     // We shouldn't close it directly, or disposing browser will not work as expected.
                     _browserView = new XWindow(browserHandle);
                     break;
+#endif
             }
 
             Dispatcher.UIThread.Post(() =>

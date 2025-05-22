@@ -1,4 +1,5 @@
-﻿namespace Xilium.CefGlue.Platform.Windows
+﻿#if !(MACOS || LINUX)
+namespace Xilium.CefGlue.Platform.Windows
 {
     using System;
     using System.Collections.Generic;
@@ -14,3 +15,4 @@
         public static extern IntPtr LoadLibraryEx(string lpFileName, IntPtr hReservedNull, LoadLibraryFlags dwFlags);
     }
 }
+#endif

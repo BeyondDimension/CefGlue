@@ -15,12 +15,12 @@ namespace Xilium.CefGlue.Common
 
         private static Action<BrowserProcessHandler> _delayedInitialization;
 
-        public static void Initialize(CefSettings settings = null, KeyValuePair<string, string>[] flags = null, CustomScheme[] customSchemes = null)
+        public static void Initialize(CefSettings settings = null, KeyValuePair<string, string>[] flags = null, CustomScheme[] customSchemes = null, string? basePath = null)
         {
-            _delayedInitialization = (browserProcessHandler) => InternalInitialize(settings, flags, customSchemes, browserProcessHandler);
+            _delayedInitialization = (browserProcessHandler) => InternalInitialize(settings, flags, customSchemes, browserProcessHandler, basePath);
         }
 
-        private static void InternalInitialize(CefSettings settings = null, KeyValuePair<string, string>[] flags = null, CustomScheme[] customSchemes = null, BrowserProcessHandler browserProcessHandler = null)
+        private static void InternalInitialize(CefSettings settings = null, KeyValuePair<string, string>[] flags = null, CustomScheme[] customSchemes = null, BrowserProcessHandler browserProcessHandler = null, string? basePath = null)
         {
             CefRuntime.Load();
 
@@ -31,8 +31,8 @@ namespace Xilium.CefGlue.Common
 
             settings.UncaughtExceptionStackSize = 100; // for uncaught exception event work properly
 
-            var basePath = AppContext.BaseDirectory;
-            var probingPaths = GetSubProcessPaths(basePath);
+            basePath ??= AppContext.BaseDirectory;
+            var probingPaths = GetSubProcessPaths(basePath).ToHashSet();
             var subProcessPath = probingPaths.FirstOrDefault(p => File.Exists(p));
             if (subProcessPath == null)
                 throw new FileNotFoundException($"Unable to find SubProcess. Probed locations: {string.Join(Environment.NewLine, probingPaths)}");
@@ -59,7 +59,7 @@ namespace Xilium.CefGlue.Common
                     settings.FrameworkDirPath = basePath;
                     settings.ResourcesDirPath = resourcesPath;
                     break;
-                
+
                 case CefRuntimePlatform.Linux:
                     settings.NoSandbox = true;
                     settings.MultiThreadedMessageLoop = true;
@@ -72,12 +72,17 @@ namespace Xilium.CefGlue.Common
 
             // On Linux, with osr disable, the filename in CefMainArgs will be used as accessible name.
             // If the name is empty, chromium will crash at ui::AXNodeData:SetNamechecked.
-            var exeFileName = Process.GetCurrentProcess().MainModule.FileName;
+            var exeFileName =
+#if NET6_0_OR_GREATER
+                Environment.ProcessPath;
+#else
+                Process.GetCurrentProcess().MainModule.FileName;
+#endif
             if (string.IsNullOrEmpty(exeFileName))
             {
                 exeFileName = "CefGlue";
             }
-            
+
             // Fix crash with youtube https://github.com/chromiumembedded/cef/issues/3643
             {
 #if DEBUG
@@ -88,7 +93,7 @@ namespace Xilium.CefGlue.Common
 #endif
                 flags = (flags ?? []).Append(KeyValuePair.Create("disable-features", "FirstPartySets")).ToArray();
             }
-            
+
             CefRuntime.Initialize(new CefMainArgs(new[] { exeFileName }), settings, new BrowserCefApp(customSchemes, flags, browserProcessHandler), IntPtr.Zero);
 
             if (customSchemes != null)
@@ -106,9 +111,16 @@ namespace Xilium.CefGlue.Common
             yield return Path.Combine(baseDirectory, BrowserProcessFileName);
 
             // The executing DLL might not be in the current domain directory (plugins scenario)
-            baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            yield return Path.Combine(baseDirectory, DefaultBrowserProcessDirectory, BrowserProcessFileName);
-            yield return Path.Combine(baseDirectory, BrowserProcessFileName);
+            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+            if (!string.IsNullOrEmpty(assemblyLocation))
+            {
+                baseDirectory = Path.GetDirectoryName(assemblyLocation);
+                if (!string.IsNullOrEmpty(baseDirectory))
+                {
+                    yield return Path.Combine(baseDirectory, DefaultBrowserProcessDirectory, BrowserProcessFileName);
+                    yield return Path.Combine(baseDirectory, BrowserProcessFileName);
+                }
+            }
         }
 
         internal static void Load(BrowserProcessHandler browserProcessHandler = null)

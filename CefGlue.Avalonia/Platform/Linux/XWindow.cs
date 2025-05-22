@@ -1,3 +1,4 @@
+﻿#if !(MACOS || WINDOWS)
 using System;
 using System.Runtime.InteropServices;
 ﻿using Avalonia.Controls;
@@ -64,3 +65,4 @@ namespace Xilium.CefGlue.Avalonia.Platform.Linux
         }
     }
 }
+#endif

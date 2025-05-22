@@ -5,7 +5,9 @@
     using System.Text;
     using Xilium.CefGlue.Interop;
     using Xilium.CefGlue.Platform;
+#if !(MACOS || LINUX)
     using Xilium.CefGlue.Platform.Windows;
+#endif
 
     /// <summary>
     /// Class representing window information.
@@ -37,9 +39,15 @@
         {
             switch (CefRuntime.Platform)
             {
+#if !(MACOS || LINUX)
                 case CefRuntimePlatform.Windows: return new CefWindowInfoWindowsImpl();
+#endif
+#if !(MACOS || WINDOWS)
                 case CefRuntimePlatform.Linux: return new CefWindowInfoLinuxImpl();
+#endif
+#if !(WINDOWS || LINUX)
                 case CefRuntimePlatform.MacOS: return new CefWindowInfoMacImpl();
+#endif
                 default: throw new NotSupportedException();
             }
         }
@@ -48,9 +56,15 @@
         {
             switch (CefRuntime.Platform)
             {
+#if !(MACOS || LINUX)
                 case CefRuntimePlatform.Windows: return new CefWindowInfoWindowsImpl(ptr);
+#endif
+#if !(MACOS || WINDOWS)
                 case CefRuntimePlatform.Linux: return new CefWindowInfoLinuxImpl(ptr);
+#endif
+#if !(WINDOWS || LINUX)
                 case CefRuntimePlatform.MacOS: return new CefWindowInfoMacImpl(ptr);
+#endif
                 default: throw new NotSupportedException();
             }
         }
@@ -110,9 +124,11 @@
         public abstract string Name { get; set; }
         public abstract CefRectangle Bounds { get; set; }
 
+#if !(MACOS || LINUX)
         // Windows-specific
         public abstract WindowStyle Style { get; set; }
         public abstract WindowStyleEx StyleEx { get; set; }
+#endif
         public abstract IntPtr MenuHandle { get; set; }
 
         // Mac-specific
@@ -149,11 +165,13 @@
         {
             ThrowIfDisposed();
 
+#if !(MACOS || LINUX)
             Style = WindowStyle.WS_CHILD
                   | WindowStyle.WS_CLIPCHILDREN
                   | WindowStyle.WS_CLIPSIBLINGS
                   | WindowStyle.WS_TABSTOP
                   | WindowStyle.WS_VISIBLE;
+#endif
 
             ParentHandle = parentHandle;
 
@@ -164,10 +182,12 @@
         {
             ThrowIfDisposed();
 
+#if !(MACOS || LINUX)
             Style = WindowStyle.WS_OVERLAPPEDWINDOW
                   | WindowStyle.WS_CLIPCHILDREN
                   | WindowStyle.WS_CLIPSIBLINGS
                   | WindowStyle.WS_VISIBLE;
+#endif
 
             ParentHandle = parentHandle;
 

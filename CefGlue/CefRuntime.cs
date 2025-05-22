@@ -22,6 +22,13 @@
         #region Platform Detection
         private static CefRuntimePlatform DetectPlatform()
         {
+#if WINDOWS
+            return CefRuntimePlatform.Windows;
+#elif MACOS
+            return CefRuntimePlatform.MacOS;
+#elif LINUX
+            return CefRuntimePlatform.Linux;
+#else
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 return CefRuntimePlatform.Windows;
@@ -38,6 +45,7 @@
             }
 
             throw new PlatformNotSupportedException();
+#endif
         }
 
         public static CefRuntimePlatform Platform
@@ -74,10 +82,17 @@
 
             if (!string.IsNullOrEmpty(path))
             {
+
+#if !(MACOS || LINUX)
                 if (Platform == CefRuntimePlatform.Windows)
+                {
                     LoadLibraryWindows(path);
+                }
                 else
+#endif
+                {
                     throw new PlatformNotSupportedException("CEF Runtime can't be initialized on altered path on this platform. Use CefRuntime.Load() instead.");
+                }
             }
 
             CheckVersion();
@@ -85,6 +100,7 @@
             _loaded = true;
         }
 
+#if !(MACOS || LINUX)
         private static void LoadLibraryWindows(string path)
         {
             Xilium.CefGlue.Platform.Windows.NativeMethods.LoadLibraryEx(
@@ -93,6 +109,7 @@
                 Xilium.CefGlue.Platform.Windows.LoadLibraryFlags.LOAD_WITH_ALTERED_SEARCH_PATH
                 );
         }
+#endif
 
         #region cef_version
 
@@ -112,7 +129,7 @@
         private static void CheckVersionByApiHash()
         {
             // We need to load libCEF.so before getting API Hash on Linux.
-            if (Platform == CefRuntimePlatform.Linux) 
+            if (Platform == CefRuntimePlatform.Linux)
             {
                 // find all the libcef.so files inside the application folder and its subfolders
                 var libCefFile = Directory.EnumerateFiles(AppDomain.CurrentDomain.BaseDirectory, libcef.DllName + ".so", SearchOption.AllDirectories).FirstOrDefault();
@@ -123,7 +140,7 @@
                     NativeLibrary.TryLoad(libCefFile, out _);
                 }
             }
-            
+
             // get CEF_API_HASH_PLATFORM
             string actual;
             try

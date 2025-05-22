@@ -1,4 +1,5 @@
-﻿namespace Xilium.CefGlue.Platform.Windows
+﻿#if !(MACOS || LINUX)
+namespace Xilium.CefGlue.Platform.Windows
 {
     using System;
     using System.Collections.Generic;
@@ -118,3 +119,4 @@
         WS_EX_WINDOWEDGE = 0x00000100
     }
 }
+#endif
