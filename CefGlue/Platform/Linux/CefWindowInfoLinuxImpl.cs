@@ -6,7 +6,9 @@ namespace Xilium.CefGlue.Platform
     using System.Text;
     using Xilium.CefGlue;
     using Xilium.CefGlue.Interop;
+#if !(MACOS || LINUX)
     using Xilium.CefGlue.Platform.Windows;
+#endif
 
     internal unsafe sealed class CefWindowInfoLinuxImpl : CefWindowInfo
     {
